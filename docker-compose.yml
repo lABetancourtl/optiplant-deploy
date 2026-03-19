@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16
+    container_name: optiplant-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - optiplant_pgdata:/var/lib/postgresql/data
+      - ./db/seed:/seed:ro
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ../reto-optiplant-backend
+      dockerfile: Dockerfile
+    container_name: optiplant-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_SEED_CATALOG: "false"
+      APP_SEED_INVENTORY: "false"
+      APP_SEED_SALES_HISTORY: "false"
+    ports:
+      - "${BACKEND_PORT}:8080"
+
+  frontend:
+    build:
+      context: ../reto-optiplant-frontend
+      dockerfile: Dockerfile
+    container_name: optiplant-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT}:80"
+
+volumes:
+  optiplant_pgdata:
