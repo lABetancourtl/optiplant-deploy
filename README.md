@@ -1,61 +1,70 @@
-# Optiplant Deploy
+# reto-optiplant-backend
 
-Orquestacion de `frontend` + `backend` + PostgreSQL usando Docker Compose.
+Backend de Optiplant desarrollado con Spring Boot.
 
-## Requisitos
-- Docker
-- Docker Compose (plugin `docker compose`)
+## Stack
+- Java 17
+- Spring Boot
+- Spring Security + JWT
+- PostgreSQL
+- Gradle
+- Swagger / OpenAPI
 
-## Estructura esperada
-Los repos deben estar como carpetas hermanas:
-- `../reto-optiplant-frontend`
-- `../reto-optiplant-backend`
-- `./optiplant-deploy`
+## Estructura
+Proyecto organizado por capas (`controller`, `service`, `repository`, `entity`, `dto`, `configuration/security`).
 
-## Ejecutar con Docker Compose
+## Ejecucion local (sin Docker)
 
-```bash
-cp .env.example .env
-docker compose up --build
-```
+Requisitos:
+- Java 17
+- PostgreSQL corriendo en `localhost:5432`
 
-## Persistencia de datos en cualquier PC
-
-Esta configuracion usa dos mecanismos:
-
-- Persistencia local por PC: volumen Docker `optiplant_pgdata`.
-- Datos iniciales compartidos: archivo `db/seed/optiplant_seed.sql`.
-
-Comportamiento:
-
-- Si el volumen esta vacio (primera ejecucion), PostgreSQL corre `db/init/01-load-seed.sh` y carga `db/seed/optiplant_seed.sql`.
-- Si el volumen ya existe, mantiene los datos previos y no reimporta seed.
-
-Servicios expuestos por defecto:
-- Frontend: `http://localhost:4200`
-- Backend: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
-
-Nota: PostgreSQL se usa de forma interna dentro de Docker Compose (no publica puerto en host).
-
-
-## Ejecutar en local (sin Docker Compose)
-
-1. Levantar PostgreSQL local en `localhost:5432` con una base `optiplant`.
-2. En `reto-optiplant-backend`, ejecutar:
+Comando:
 
 ```bash
 ./gradlew bootRun
 ```
 
-3. En `reto-optiplant-frontend`, ejecutar:
+Variables opcionales para sobreescribir conexion local:
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+## Ejecucion con Docker
+
+Desde este repositorio:
 
 ```bash
-npm install
-npm start
+docker build -t optiplant-backend .
+docker run --rm -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=local \
+  -e DB_URL='jdbc:postgresql://host.docker.internal:5432/optiplant' \
+  -e DB_USERNAME='postgres' \
+  -e DB_PASSWORD='postgres' \
+  optiplant-backend
 ```
 
-Con esto:
-- Frontend en `http://localhost:4200`
-- Backend en `http://localhost:8080`
+Nota: para levantar frontend + backend + DB juntos, usar el compose de `optiplant-deploy`.
 
+## API docs
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+
+## Endpoints de autenticacion
+- `POST /auth/login`
+
+## Usuarios de prueba
+
+El sistema incluye cuentas predefinidas para facilitar el acceso en entornos de desarrollo y pruebas:
+
+- **admin**
+  - Usuario: `admin`
+  - Contraseña: `pass123`
+
+- **sucursales**
+  - Usuario: `sucursal1`
+  - Usuario: `sucursal2`
+  - Usuario: `sucursalcentral`
+  - Usuario: `sucursalcentral2`
+  - Contraseña para todos: `pass123`
+
+> Estas cuentas están disponibles en el entorno de desarrollo. Para producción, se recomienda cambiar las credenciales.
