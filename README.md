@@ -66,5 +66,3 @@ El sistema incluye cuentas predefinidas para facilitar el acceso en entornos de 
   - Usuario: `sucursalcentral`
   - Usuario: `sucursalcentral2`
   - Contraseña para todos: `pass123`
-
-> Estas cuentas están disponibles en el entorno de desarrollo. Para producción, se recomienda cambiar las credenciales.
